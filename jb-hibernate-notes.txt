@@ -1,0 +1,1008 @@
+Hibernate : 
+==
+additional query
+1 : @version,
+==============================
+use-cases to try :
+--
+1 : entity class has one collection field of type non-entity
+=============================
+
+Difference of JPA and Hibernate :
+
+JPA : is just specification
+Hibernate : is implementation of JPA
+
+it means if jpa provides annotations,then it will be only interface and hibernate internal jar will be implemented
+example : @Table : is jpa annotation but hibernate jar implements it
+
+class 1 : Introduction to hibernate :
+------
+1 : Hibernate  is :
+   a) is an orm tool (ORM->Object Relational(database) relationship)
+   b) used in data layer application
+   c) Implements JPA
+   
+ The Problems in JDBC
+ ===
+ 1 : Mapping member variables to columns
+ 2 : Mapping relationships(user has address ,here we have to map relationships between 2 tables)
+ 3 : Handlig datatypes(type casting according to DB)
+ 4 : Managing changes of object state(as soon of object state is changed,we need to call update manually)
+ 
+class 2 : Setup Hibernate project
+---
+
+class 3 a):Writing Hibernate Application
+----
+1 : Steps for saving without hibernate
+-
+a) JDBC Database configuration
+b) The Model object
+c) Service method to create model object
+d) database design( database and table names should be created before writing application) 
+e) DAO method to save the object using SQL queries ==>i,e to convert model object into queries and then save
+
+
+2 : The Hibernate way  
+--
+a) JDBC Database configuration --Here hibernate configuration
+b) The Model object --with Annotations
+c) Service method to create model object -- use Hibernate api
+d) database design --not needed
+e) DAO method to save the object using SQL queries --not needed
+
+3 : Configuring hibernate.cfg.xml and creating DB 
+
+
+class 3b) : Writing Model class with annotations
+----
+SQL Dialect : MySQL8Dialect ==>Dialect are responsible to generate appropriate sql queries for connecting to db
+
+<property name="hbm2ddl.auto">update</property>
+create : Drop and create tables everytime 
+update : will create and update existing table
+
+
+Annotations :
+==
+1 : @Entity :  an entity represents a table in a relational database, and each entity instance corresponds to a row in that table
+2 : @Id : will map that field as primary key in relational database
+
+
+Hibernate API
+---
+1 : create session factory
+2 : create session from session factory
+3 : use the session to save model objects
+
+Example : C_03_DriverApp.java
+
+
+===============
+ 
+ class 4  : Hibernate Tutorial 04 - hbm2ddl Configuration and Name Annotations
+ ====
+1 : difference between compoent and entity
+2 : restrictions : Table name with User is not allowed 
+3 : By default,class entity will be considered as table name.But if we want to give different name,then use name attribute with entity class
+4 :  we can define annotations on fields or getter :
+     if annotation on field, then it will not call getter methods it will pick directly from field (add annotation on just field and run program)
+     if on getter,then it will call getter methods to get values(add annotation on getter methods and run program)
+	 By default,if we dont specify @column annotation then it will perform field name injection(i,e what ever u set,it wil return same)
+	 
+=====================
+class 5 : More annotations
+====
+1 : @Table : this annotation is useful only if we need to map  table name not complete entity name(entity name should be as class name ,should not be changed 
+because it is useful during hqls)
+2 : length attribute when datatype is string ,by default column length is cosidered as 255,what if we want to more : 
+3 :  static or transient
+4 : @Transient : wont store data to table.i,e ignores field for serialization /persistance
+5 : @Temporal : used for date:y default,it stores complete timestamp : if we want to control to store only date or time and etc...then use this
+6 : @Lob : means largeObjects to store to DB.Any datatype of java field can use this and hibernate takes care for coverting as blob or clob
+7 : ,@blob,@clob : if datatype is bytestream arry then blob and if char array then clob
+
+Note : 
+==Best praticse : put annotation on either field or getters not on both it wont work as expected(in same class maintain either one)
+
+class 6 : Reterving objects session.get
+====
+1 : session.get Method to be called to get object from table
+get.session gives value :but when description has value but still returning as null because after insert i made field as transient.
+	User_MoreAnnotations [userId=1, userName=First UserFROM GETTER 	, joinedDate=2021-05-14, address=Hospet, description=null]
+	
+class 7 : Primary keys : https://www.baeldung.com/hibernate-identifiers for more details
+======
+1 : Natural keys : existing field itslef will act as uique and maintains as primary key -->@ID
+2 : surrogate keys : sometimes we will create separate column to maintain uniqueness-->@GeneratedValue
+3 : @GeneratedValue : it will automatically generates value
+4 : @GeneratedValue(strategy=GenerationType.AUTO) ==>hibernate decides  automatically(AUTO,IDENTITY,SEQUENCE,TABLE)
+
+
+Table : for auto : it will maintain own table for GenerationType.SEQUENCE 
+-----------------
+Hibernate: 
+    
+    insert into hibernate_sequence values ( 1 )
+Hibernate: 
+    
+    create table user_auto_id (
+        userId integer not null,
+        userName varchar(255),
+        primary key (userId)
+    )
+hibernate_sequence table is created by hibernate to maintain counter value when we use GeneratedValue
+
+Hibernate: 
+    update
+        hibernate_sequence 
+    set
+        next_val= ? 
+    where
+        next_val=?
+
+
+4 : GenerationType.IDENTITY : it wont create new  table for maintaining sequence
+ create table user_auto_id (
+        userId integer not null auto_increment, //it will add auto_increment
+        userName varchar(255),
+        primary key (userId)
+    )
+=========
+
+
+class 8 : Hibernate Tutorial 08 - Value Types(like array,collections and so on) and Embedding Objects(object reference as field in class college has address)
+----
+
+2 types of objects : 
+---
+1 : Entity : it is data,which has meaning to its own()
+2 : value type object( means itself dont have value.it should be integrated with other entity to get value )
+
+example : Student has address . student entity itself has meaning  but only address dont give meaing because we should map address to student
+as field to other collections ,array and so on)
+
+1 : @Embeddable : puts on class which get embedded with in other entity.by this hibernate will not create seperate table for it
+2 : @Embedded : puts  on  field ,so all the fields of that embeddable class will be embedded on same entity table
+
+o/p : where all fields are created with in same table/entity
+Hibernate: 
+    
+    create table user_embedded_annotation (
+        userId integer not null auto_increment,
+        area varchar(255),
+        city varchar(255),
+        pincode varchar(255),
+        state varchar(255),
+        userName varchar(255),
+        primary key (userId)
+    )
+Hibernate: 
+    insert 
+    into
+        user_embedded_annotation
+        (area, city, pincode, state, userName) 
+    values
+        (?, ?, ?, ?, ?)
+=============================================================
+
+class 9 : Hibernate Tutorial 09 - AttributeOverrides and Embedded Object Keys (object within object of same type)
+---
+usecase : 
+==
+1 : what if embedded objects column names should be changed example : city as city_name of address class
+
+sol 1 : use @column annotation in embeddable class.
+
+drawback of sol 1 : when we multiple fields in same class of same type then it wont create same column twice
+example : if user has home_address and office_address,then we cannot store both adress because address class columns will be created(sql wont create same column name)
+
+sol 2 : To overcome use 1 : we can use @AttributeOverrides annotation which we can override all fields of address class on embedded field
+check class 9 example
+
+
+use-case 2 : what if multiple column to be made as primary key.
+write all fields in one class and  make it as embeddable but use emmbededID annotation
+
+@AttributeOverrides : to override column names
+@AttributeOverride : override column
+@EmbeddableID : for primary key
+
+========
+
+class 10 : Hibernate Tutorial 10 - Saving Collections
+--
+1 : when we have collection field in  class then each collection field will have separate table with filed-name  as table name by default
+example :  when user has set of address,then it will create new table setAdress with foreign key(here userID of user class). and user table will have only other fields as column names 
+set<Address>
+
+2 : @ElementCollection : this annotation is to be used on collections
+
+
+2 : check for string and int types set<String>
+
+=========
+
+class 11 : Hibernate Tutorial 11 - Configuring Collections and Adding Keys
+-----
+
+1 : This is very important tutorial,it teachs us how to add indexing and keys to joined table
+
+2 : join table : table which is joined to primary table
+example : user table is primary and 
+user_setAddress table is join table
+
+usecase 1 : If we want to change join table name and column names
+---
+@JoinTable :used to specify table name for join table
+@JoinColumn = to rename joined column name
+
+usecase 2 : how to specify primary key/indexing to join table 
+------
+Imp : Set don't have indexing so we cannot specify primary-key for joined table(need to explore more)
+
+1 : ArrayList supports indexing so we can use it
+2 : 
+@CollectionId   : used to specify primary key for join table
+@GenericGenerator : used to generate primary key i,e equivalent to @ID annotations.
+
+===========
+
+class 12 : Proxy Objects and Eager and Lazy Fetch Objects
+----
+usecase : Whenever we have collection field in entity class and we do get entity object ,then by default it does lazy intialization
+i,e it means hibernate by default will have create proxy class and provide u proxy object. proxy class will extend actual class
+---
+
+Lazy Initialization :
+--
+It will not load collection field data  till we explicitly call get method on it or toString()
+
+if we close seesion first and call toString() or getAddress() then will get this exception
+example : 
+
+from below query it is clear hibernate alled only select query on user table
+===
+Hibernate: 
+    select
+        user_colle0_.userId as userId1_5_0_,
+        user_colle0_.userName as userName2_5_0_ 
+    from
+        user_collections_join_example user_colle0_ 
+    where
+        user_colle0_.userId=?
+Exception in thread "main" org.hibernate.LazyInitializationException: failed to lazily initialize a collection of role: learning.hibernate.jb_hibernate.dto.User_Collections_Join_Example.address, could not initialize proxy - no Session
+	at org.hibernate.collection.internal.AbstractPersistentCollection.throwLazyInitializationException(AbstractPersistentCollection.java:584)
+	at org.hibernate.collection.internal.AbstractPersistentCollection.withTemporarySessionIfNeeded(AbstractPersistentCollection.java:201)
+	at org.hibernate.collection.internal.AbstractPersistentCollection.readSize(AbstractPersistentCollection.java:145)
+	at org.hibernate.collection.internal.PersistentIdentifierBag.size(PersistentIdentifierBag.java:191)
+	at learning.hibernate.jb_hibernate.dto.User_Collections_Join_Example.toString(User_Collections_Join_Example.java:81)
+	at learning.hibernate.jb_hibernate.driver.C_12_DriverApp.main(C_12_DriverApp.java:61)
+
+
+
+Eager Intiialization : 
+--
+It will return all field data by first time hit only
+
+By below ,it is clear hibernate is calling outer join
+Hibernate: 
+    select
+        user_colle0_.userId as userId1_5_0_,
+        user_colle0_.userName as userName2_5_0_,
+        address1_.USER_COLLECTION_ANNOTATION_ID as USER_COL1_0_1_,
+        address1_.area as area2_0_1_,
+        address1_.city as city3_0_1_,
+        address1_.id as id4_0_1_,
+        address1_.pincode as pincode5_0_1_,
+        address1_.state as state6_0_1_,
+        address1_.addressID as addressI7_1_ 
+    from
+        user_collections_join_example user_colle0_ 
+    left outer join
+        USER_ADDRESS_JOINED address1_ 
+            on user_colle0_.userId=address1_.USER_COLLECTION_ANNOTATION_ID 
+    where
+        user_colle0_.userId=?
+====
+
+class 13 :Hibernate Tutorial 13 - One To One Mapping(code to be written is pending)
+----
+Note :
+===
+1 : for each entity u should call save method with in single transactions
+
+Till now,we had one object within other but only one class was entity and other was either embeddable or just collections
+example : user_details had address :here user_details was only entity and other was just embeddable/nothing
+
+From now ,say we 2 entity classes and how do we map each other
+example : user_details has a vehicle(here user_details and vehicle both are entity) so 2 separate table will be created with vehicle_id as foreign-key column
+
+Note : Each entity will have one table.Mapping of entity can be performed in below ways
+
+o/p : 2 separate tables with foreign-key relationship
+==
+1:In one-one mapping,primary key of vehicle table will be stored as foreign-key in user_details table
+
+1 : In o/p, i observed the order of execution.
+a ) if i save user-details table first then vehicle,it will perform insert query followed by update query on user-details.vehicle-id will be null for insert
+b ) if i save vehicle and then user-details,it will perform only insert query
+c ) if u save userdetails but not vehicle,then it will throw exception for foreign-key relationship.if ur code is within transaction then it will get rollback
+Transaction  are like either execution completely or rollback completely
+
+Hibernate: 
+    insert 
+    into
+        UserDetails_Mappings
+        (userName, vehicle_id, userId) 
+    values
+        (?, ?, ?)
+	
+   insert 
+    into
+        vehicle
+        (vehicleName, id) 
+    values
+        (?, ?)
+------------
+
+
+class 14 :Hibernate Tutorial 14 - One To Many Mapping(code to be written)
+---
+One To Many Mapping: one entity with multipe values of different entity
+example : one user has a vehicles (i,e user has collection of vehicle field)
+--
+o/p : 
+--
+a ) 3 separate tables .i,e one for vehicle,user and user_vehicle for collection
+
+Hibernate: 
+    insert 
+    into
+        vehicle
+        (vehicleName, id) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        UserDetails_One_Many_Mappings
+        (userName, userId) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        UserDetails_One_Many_Mappings_vehicle
+        (UserDetails_One_Many_Mappings_userId, vehicle_id) 
+    values
+        (?, ?)
+
+		
+2 : rename collection table name and column using jointable ,joincolumn inversejoincolumn
+
+Hibernate: 
+    insert 
+    into
+        user_vehicle_one_many
+        (user_details_user_id, vehicle_vechile_id) 
+    values
+        (?, ?)
+=======================================
+	
+many to one : vice-versa (coding pending from here 9/6th)
+--
+multiple vehicle has single user
+example : vehicle has a user with many-to-one relationship
+ i,e in user class vehicle should be collection 
+ 
+ Hibernate: 
+    insert 
+    into
+        Vehicle_Many_One
+        (userDetails_One_Many_Mappings_userId, vehicleName, id) 
+    values
+        (?, ?, ?)
+
+Hibernate: 
+    insert 
+    into
+        UserDetails_One_Many_Mappings2
+        (userName, userId) 
+    values
+        (?, ?)
+		
+ Hibernate: 
+    insert 
+    into
+        user_vehicle_one_many2
+        (user_details_user_id, vehicle_vechile_id) 
+    values
+        (?, ?)
+ 
+Note : 
+--
+Observe table differences in many-one 
+vehicle will have user_id column in same vehicle table because it is not a collection
+In one-many,user table will not have vehicle_id column because it is a collection .so it maintain separate table with both tables primary-key
+
+Bidirectional : mapping from both class 
+
+=========
+
+class 15 :Hibernate Tutorial 15 - mappedBy and Many To Many Mapping (video watched till 4 mins )
+----
+mappedBy = is used in one-many/many-one
+mappedBy = this will map dependent entity (vehicle) table with primary-key of entity(user-details)
+example : vehicle table will have user_id column .
+
+without mappedBy : for every collection field it will create separate table by primary-keys of 2 entities
+with mappedBy : it will create  tables for each entity.and maps primary-key of one entity to other in dependent entity(vehicle)
+but dependent entity should have many-one mapping
+
+example : vehicle table will have user_id column 
+
+ =
+ 
+Hibernate: 
+    
+    create table UserDetails_One_Many_Mappings_MappedBy (
+        userId integer not null,
+        userName varchar(255),
+        primary key (userId)
+    )
+
+Hibernate: 
+    insert 
+    into
+        UserDetails_One_Many_Mappings_MappedBy
+        (userName, userId) 
+    values
+        (?, ?)
+		
+B : Many to Many relationship
+--
+1 : In many to many relationship,2 entities will have many-many 
+i,e user-details will have many vehicles
+vehicles can have many users
+
+so it will be collection field on both the entities and it will create seperate tables.i,e it will have 4 tables
+1 : user,vehicle,user_vehicle and vehicle_user
+
+to avoid one table ,we should use mapped by on any one entites collection field.
+
+
+---without mappedBy
+
+Hibernate: 
+    insert 
+    into
+        user_many_many
+        (name, id) 
+    values
+        (?, ?)
+Hibernate: 
+    insert 
+    into
+        vehicle_many_many
+        (vehicleName, id) 
+    values
+        (?, ?)
+		
+Hibernate: 
+    insert 
+    into
+        user_many_many_vehicle_many_many
+        (user_many_many_id, vehicles_id) 
+    values
+        (?, ?)
+		
+Hibernate: 
+    insert 
+    into
+        vehicle_many_many_user_many_many
+        (vehicle_many_many_id, user_id) 
+    values
+        (?, ?)
+		
+=====
+class 16 : Hibernate Tutorial 16 - CascadeTypes and Other Things
+--
+1 : covered till now all mappings
+
+usecase : 
+--
+1 : for vehicle entity has user-detail field (many vehicle one user i,e manytoone), there is chances sometime we will not set user field for vehicle object for saving.so value will be null for user in vehicle table.(probably user field column added after table creation)
+
+2 : during fetching the value,hibernate will throw exception to handle this use @NotFound(implementate it)
+https://www.concretepage.com/hibernate/example-notfound-hibernate
+
+Hibernate collection(java collection will be mapped to hibernate collection by hibernate in below way)
+--
+1 : Bag Semantic->List/ArrayList
+2 : Bag Semantic with ID->List/ArrayList
+3 : Set Semantic->Set
+4 : List Semantic->list
+5 : Map Semantic -.Map
+
+https://www.baeldung.com/jpa-cascade-types
+cascade :(a process whereby something, typically information or knowledge, is successively passed on.)
+----
+1 : If we have 2 entities and one entity is field in other.
+suppose say if we want to make any operations .
+example user has vehicle.if we have to save user then vehicle should also be saved using session.save/persist methods
+But if we have collections of vehicle in user,then we have to save all vehicles entities before user entity.or else it will throw exception
+
+HHH000346: Error during managed flush [object references an unsaved transient instance - save the transient instance before flushing: learning.hibernate.jb_hibernate.dto.C_16_Vehicle_NotFound]
+JDBC transaction marked for rollback-only (exception provided for stack trace)
+java.lang.Exception: exception just for purpose of providing stack trace
+
+session.save(user);
+			//if we didnt save vehicle  then it throws exception transient
+			//session.save(vehicle1);
+			//session.save(vehicle2);
+suppose ,say we have more number of vehicle object for user,then we have to save all vehicles before user which is cumbersome.
+so cascade will solve this problem
+
+we have to use CascadeTypes on user class which has vehicle field and use persist method instead of save
+
+Note : 
+--
+ difference between save and persist method is cascade wont work on save method
+ 
+ 
+=====================
+Class 17 : Hibernate Tutorial 17 - Implementing Inheritance
+
+Inheritance,in hibernate subclasses will inherit parent fields with annotation on it
+
+Vehicle has id,name and liceneseNumber
+1 : TwoWheeler is a Vehicle and has handle
+2 : FourWheeler is a Vehicle and has sterring
+
+One way table design for above scenerio is :(see screen shot how 3 tables will be designed)
+--
+1 : we should seperate tables for  subclasses and one table for Vehicle 
+
+use-case
+--
+say,User has a Vehicle(it can be 2wheeleer/4wheeler decides at run time)
+problem 1 : 
+how to persist user in user-table.where hibernate store vehicle data.i,e either in 2wheeleer/4wheeler or Vehicle
+
+problem 2 : 
+what if we add more fields to vehicle later,java will inherit fields but hibernate wont add  new columns to subclasses
+
+
+Example 1 :(yet to write )
+--
+1 : create 3 entities vehicle,TwoWheeler,FourWheeler and  inherit vehicle in both subclasses
+
+Advantage :
+-
+1 : 
+
+when u save/persist,we expect 3 tables since all 3 are entites but hibernate crates only one table Vehicle with DTYPE(descrmint type) as new column
+
+design o/p :  
+
+# DTYPE, 				id, name, 			handling, 				Sterring
+'Vehicle_inheritance', 	'3', 'Vehicle', 	NULL, 						NULL
+'TwoWheeler', 			'2', NULL, 			'two wheeler has handler',	 NULL
+'FourWheeler', 			'1', NULL, 			NULL, 						'Four wheeler has steering'
+
+====================
+
+Hibernate Tutorial 18 - Implementing Inheritance - Single Table Strategy
+--
+create  3 entites,vehicle,TwoWheeler,FourWheeler classes and add @Inheritance on parent class
+
+1 : Default InheritanceType :  is SingleTable strategy(one table for base class ) and for subclasses it will add new columns in same base table.
+2 : @Inheritance(strategy=SingleTableStragey)  i,e in hibernate it is default behaviour on inheritance.either if u dont specify also it will apply
+3 : @DiscriminatorColumn annotation,can be given on vehicle class for changing name from dtype to other
+4 : @DiscriminatorValue annotation,used to change value in column .example for TwoWheeler can be changed to Bike
+
+Disadvantages :
+--
+1 : everything will be in single table and not a good design
+2: Becomes complicated on quering and causes performance
+3 : Most of the column will be null 
+====================
+
+Hibernate Tutorial 19 - Implementing Inheritance With Table Per Class Strategy
+-
+It will create 3 tables. in each child, It will have fk as vehicle-id
+
+subclass will have columns for all vehicle-fields and its fields
+
+1 : create  3 entites,vehicle,TwoWheeler,FourWheeler classes and add @Inheritance on parent class
+
+Advantage :
+-
+1 : Every table is normalized and is elegant way of design
+ 
+o/p :
+--
+
+Hibernate: insert into FourWheeler (name, Sterring, id) values (?, ?, ?)
+Hibernate: insert into TwoWheeler (name, handling, id) values (?, ?, ?)
+Hibernate: insert into Vehicle_TABLE_PER_CLASS (name, id) values (?, ?)
+======================
+Hibernate Tutorial 20 - Implementing Inheritance With Joined Strategy
+--
+Here,
+subclass will have only columns for thier fields and vehicle-id as fk of parent-class
+
+o/p:
+--
+Hibernate: insert into Vehicle_Joined (name, vehicle_id) values (?, ?)
+Hibernate: insert into TwoWheeler_joined_inherit (handling, vehicle_id) values (?, ?)
+Hibernate: insert into Vehicle_Joined (name, vehicle_id) values (?, ?)
+
+Note : 
+--
+1 : check behaviour of cascade .i,e check can we apply
+2 : check behaviour,create Vehicle vehicle = new TwoWheeler(). and set all values and save vehicle
+
+===============
+
+class 21 : Hibernate Tutorial 21 - CRUD Operations
+---
+1 : create a simple entity user that has username and id (required collection for eager and lazy)
+2 : save 10 users using for loop
+3 : get all users or specific user with id(brush-up : Eager and Lazy type.By default it is Lazy on Collections field and eager for other fields)
+If we are reterviewing collections and need to use that object even after closing session ,then specify eager
+4 : Delete Object sending object
+5 : Update Object
+
+output :
+--
+-- without delete ,we can see update is executed 
+
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: update user_details_crud set name=? where id=?  
+
+--With Delete,Hibernate is smart enough not to execute update statement,since same object is deleted in next line within session
+
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: insert into user_details_crud (name, id) values (?, ?)
+Hibernate: delete from user_details_crud where id=? //skipped update and executed only delete
+
+
+================
+
+class 22 : Hibernate Tutorial 22  - Transient, Persistent and Detached Objects
+--
+
+1 : Transient : state of the object still not handed over to hibernate.
+i,e for first time ,all objects will be transient.
+
+2 : Persistent : Till hibernate control the state of object is called persistance state
+once the state of the object is saved/persisted to DB it will become persistence.
+i,e when we give object to hibernate.it will control the state of object till session is closed
+Object will be in persistence still till that session is not closed
+
+3 : Detached : Once session is closed ,hibernate will no more track the object and object become detached state.
+
+example :
+UserDetails user = new UserDetails();
+user.setName(); //Transient state
+
+session.save(user); //Persistent state
+
+user.setName();//still hibernate is controlling state of the object.so it will automatically updates it without even session.update
+user.setAdress();
+user.setName(); //hibernate will perfrom only once update.i,e is last state change //see change in tables
+session.close();//Object is Detached from now
+
+example : create user-details entity with id,name and adress as fields
+
+o/p :
+Hibernate: update user_details_crud set Address=?, name=? where id=?
+
+
+====================
+class 23 : Hibernate Tutorial 23 - Understanding State Changes(Only Theory)
+
+1 : check screen-shots
+
+1 : For Create flow : 
+Transient->Persistent->Detached
+
+2 : for update,it can start from transient state if it is new object 
+Transient->Persistent->Detached
+or from persistance state,if update is from 
+Persistent->Detached
+
+3 : GET ->Persistent->Detached
+
+4 : For Delete ->Transient<-Persistent->Detached
+in delete,it will change from persistance to transient state and close it at detached
+
+5 : There might scenerio,where we need to convert detached state to persistence state(he didn't explain it)
+==================
+
+class 24 : Hibernate Tutorial 24 - Persisting Detached Objects
+--
+Note : We should fetch entity from DB,to make it Persistent state and update it
+
+1 : create a single entity and driver class and see screen-shots for example
+2 : @SelectBeforeUpdate : put this annotation on entites class and,when we do update directly,hibernate will update even there is no changes in state.
+example : fetch userDetails object from DB and  call update on same object without modifying anything.Since hibernate didnt had track on object it will blindly 
+do update.To avoid this use SelectBeforeUpdate.
+3 : SelectBeforeUpdate : Hibernate will execute select query anod compares state of the object before updating.if both are same then it wont update.
+4 : we should use selectBeforeUpdate thinking in performance
+
+//Note : for me with or without selectBeforeUpdate,same output no update if no change in user object
+
+user=UserDetails [id=1, name=User 1]
+Hibernate: insert into user_details_objectState (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_objectState (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_objectState (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_objectState (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_objectState (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_objectState (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_objectState (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_objectState (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_objectState (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_objectState (Address, name, id) values (?, ?, ?)
+
+=============
+class 25 : Hibernate Tutorial 25 - Introducing HQL and the Query Object
+--
+HQL & sql difference
+1 : -> class-name is table name,field is column name
+2 : no select in query
+3 : Instead of record set ,hibernate return list.
+-----
+
+1 : HQL,use createquery In Driver class,call from userDetails entity name and in where condition we should user filed-name
+example : from userDetails where id>5;
+o/p :
+
+Hibernate: insert into user_details_hql (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_hql (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_hql (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_hql (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_hql (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_hql (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_hql (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_hql (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_hql (Address, name, id) values (?, ?, ?)
+Hibernate: insert into user_details_hql (Address, name, id) values (?, ?, ?)
+
+Hibernate: select userdetail0_.id as id1_0_, userdetail0_.Address as Address2_0_, userdetail0_.name as name3_0_ from user_details_hql userdetail0_ where userdetail0_.id>5
+list=[UserDetails [id=6, name=User 6], UserDetails [id=7, name=User 7], UserDetails [id=8, name=User 8], UserDetails [id=9, name=User 9], UserDetails [id=10, name=User 10]]
+===========
+
+class 26 : Hibernate Tutorial 26 - Select and Pagination in HQL(refer Example from 25DriverApp)
+---
+1 : hibernate drawback : from above hql it will invoke all column instead of particular column.even if dont need sometime.
+2 : how to solve pagination
+-
+ 
+
+
+Pagination methods :
+
+1 : query.setFirstResult->from where to start->hibernate set offset(sql) in mysql limit will take care
+2 : query.setMaxResult->fhow many records needed->limit
+o/p :
+ 
+		 //class 26 b:
+		 query = session.createQuery("select id from UserDetails");
+		 query.setFirstResult(2);
+		 query.setMaxResults(4);
+		 List<UserDetails> users_pagination = query.list();
+		 System.out.println("only id from 2 and limited only for 4="+users_pagination);
+Hibernate: select userdetail0_.id as col_0_0_ from user_details_hql userdetail0_ limit ?, ?
+only id from 2 and limited only for 4=[3, 4, 5, 6]
+
+-
+Invoke only particular columns :
+--
+1 : use select in create query method and it will return list based on columns
+->if single column,then it will return list of strings(in screen-shot)
+->if multipe column,then it will return list of Object(u should try.he said something list of list)
+->aggreation methods can be given directly i hql as well
+
+ snippet for single column:
+ query = session.createQuery("select id from UserDetails where id>5");
+		 List<UserDetails> users_limited = query.list();
+		 System.out.println("only id="+users_limited);
+		 
+o/p :
+Hibernate: select userdetail0_.id as col_0_0_ from user_details_hql userdetail0_ where userdetail0_.id>5
+only id=[6, 7, 8, 9, 10]
+
+--for multipe column,list of list didnt debug more but below is output
+ query = session.createQuery("select id,name from UserDetails where id>5");
+		 List<UserDetails> users_limited = query.list();
+		 System.out.println("only id="+users_limited);
+Hibernate: select userdetail0_.id as col_0_0_, userdetail0_.name as col_1_0_ from user_details_hql userdetail0_ where userdetail0_.id>5
+only id=[[Ljava.lang.Object;@5707c1cb, [Ljava.lang.Object;@2b5cb9b2, [Ljava.lang.Object;@35038141, [Ljava.lang.Object;@ecf9049, [Ljava.lang.Object;@672f11c2]
+
+===============
+
+class 27 : Hibernate Tutorial 27 - Understanding Parameter Binding and SQL Injection
+
+--
+1 : sql injection -> screen-shot. appending parameter directly to queries will lead to sql injection.use parameter binding to solve it.
+2 : Parameter bindings->for sql injection,parameter biding is solve.(try sql injection here)
+i,e query.set<int/string/..> methods to replace ? in query.Similarly to prepared-statement.
+Instead of using ? as parameter-binder we can use directly :fieldname
+
+select username where userid=?//position parameter
+selet userName where userid=:userID //named parameter
+
+query.setint(0,.) use query.set
+3 : Named Parameters in Parameter binding
+query.setint(userid)
+
+
+o/p : sql injection :
+--
+Hibernate: select userdetail0_.id as id1_0_, userdetail0_.Address as Address2_0_, userdetail0_.name as name3_0_ from user_details_sqlinject userdetail0_ where userdetail0_.id=5 or 1=1
+list=[UserDetails [id=1, name=User 1], UserDetails [id=2, name=User 2], UserDetails [id=3, name=User 3], UserDetails [id=4, name=User 4], UserDetails [id=5, name=User 5], UserDetails [id=6, name=User 6], UserDetails [id=7, name=User 7], UserDetails [id=8, name=User 8], UserDetails [id=9, name=User 9], UserDetails [id=10, name=User 10]]
+
+
+o/p : sql position parameter :even if same string is given,still it is returned specific,beauty of jdbc/hibernate
+---
+//postioned parameter to avoid injection
+String query_sql_inject = "5 or 1=1";
+query = session.createQuery("from UserDetails where id=?");
+query.setString(0, query_sql_inject);
+
+Hibernate: select userdetail0_.id as id1_0_, userdetail0_.Address as Address2_0_, userdetail0_.name as name3_0_ from user_details_sqlinject userdetail0_ where userdetail0_.id=?
+list=[UserDetails [id=5, name=User 5]]
+
+o/p : sql named parameter
+
+//named parameter to avoid injection
+---
+query = session.createQuery("from UserDetails where id=:userId");
+query.setString("userId", query_sql_inject);
+users = query.list();
+System.out.println("list named-param=" + users);
+			
+Hibernate: select userdetail0_.id as id1_0_, userdetail0_.Address as Address2_0_, userdetail0_.name as name3_0_ from user_details_sqlinject userdetail0_ where userdetail0_.id=?
+list=[UserDetails [id=5, name=User 5]]
+
+---
+
+class 28 : Hibernate Tutorial 28 - Named Queries
+---
+1 : In Named query,we can either write hql or sql
+2 : @NamedQuery anno to be used on entity class.Naming convention maintain with className.fieldname to recoginze output
+3 : query.getNamedQuery method to used instead createquery
+4 : @NamedNativeQuery : used to write native query annotation
+
+Note : Recommended ->to go with hql instead of sql
+
+o/p:
+for named queries :(code is in class27)
+--
+Hibernate: select userdetail0_.id as id1_0_, userdetail0_.Address as Address2_0_, userdetail0_.name as name3_0_ from user_details_sqlinject userdetail0_ where userdetail0_.id=?
+list by named-query=[UserDetails [id=5, name=User 5]]
+
+for native queries
+org.hibernate.exception.SQLGrammarException: could not extract ResultSet
+======
+class 29 : Hibernate Tutorial 29 - Introduction to Criteria API
+----
+ 3 ways to interact with DB in hibernate
+
+ 1 : session.get/save/persist methods 
+ 2 : HQL : hibernate query language
+ 3 : CriteriaAPI : solves drawback of hql and recommended way
+ 
+ use->criteria and restictions and use criteria.list method to reterivie data
+=========================
+ 
+class 30 : Hibernate Tutorial 30 - Understanding Restrictions
+--
+
+Restrictions : provides lot method see once.like gt,ge,isnotempty and so on to put restrictions
+
+2 : By default,restriction.add method will do and operations on where.
+if to use like or,then use restrictions.or method
+============================
+
+class 31 : Hibernate Tutorial 31 - Projections and Query By Example(In creteriaApi)
+---
+
+1 : How to get only particular columns not entire object
+-> use projections(project in azure-insights) .i,e Projections.property method
+
+2 : Projections 1 <setproperty>: In this example,we have to change list<user-details> to list<string>
+3 : In Query by Example(special class) of hibernate->it will ignores restrictions on null and primary-key
+  and check some screen-shots 
+ 
+==================
+
+class 32 : Hibernate Tutorial 32 - Caching in Hibernate
+---
+
+cache : it stores data fetched from DB.To avoid more number of DB hits
+
+ 2 levels of cache :
+--
+1 : 1st level cache -> Session
+
+Drawback :
+--
+1 : data will be erased/lost once session is closed.i,e data is saved for shorter period time
+
+2 : Secondlevel cache : Hibernate cache.
+Advantage : (screen-shot)
+--
+1 : Data will be saved for longer time.shared across session
+2 : shared across applications
+2 : If data is to be sent across cluster application,then 2nd level of cache is best
+
+Examples :
+--
+1 : call session.get for first time,it will execute select query
+2 : call again session.get from same session,it will not execute select again.it will provide from same.
+
+usecase 2 : 
+--
+When i am doing,session.get and user.setName then again session.get it will execute only first select and update but not again select at end.
+Because,we knew object will be in persistance state.i,e is controlled by hibernate and it will track all updated changes .so it will not call select again
+
+==================
+class 33 : Hibernate Tutorial 33 - Configuring Second Level Cache
+----
+
+interview questions:how to configure second level cache
+--
+steps :Provide configuration in hibernate-cfg.xml
+
+1 : enable 2nd level cache as true.
+2 : Provide Cache provider in configuration
+3 : Download cache provider implementation by adding dependency/class path
+4 : On Entity class ,provide @cacheable and @cache(usage=CacheConcurrencyStragey.ReadWrite/Readonly and so on)
+
+types of second level cache : All second level cache will be on org.hibernate.cache
+--
+
+1 :EhCache
+2 : ReadWrite cache
+3 : OS cache and so on.
+4 : Query cache  
+
+==========
+
+class 34 : Hibernate Tutorial 34 - Using Query Cache
+---
+
+There are 3 types of cache :
+--
+1 : session level cache.i,e with in same session it will call select query only once on session.get methods(data shared in same session)
+2 : Second level cache.i,e even for  different sessions it will call select query once for same object.
+3 : Query cache .it will be used on Query interface and just enabling second level cache wont help.we should enable query cache and make query.cachable(true)
+
+Remaining-use-case : 
+--
+1 : In cascade example,remove mappedBy and see there is sql integrate exception.analyze it.
+1 : check behaviour of cascade .i,e check can we apply
+2 : check behaviour,create Vehicle vehicle = new TwoWheeler(). and set all values and save vehicle
+
